@@ -2,19 +2,11 @@
 #include <stdio.h>
 #include <conio.h>
 
-/* prototypes */
-void draw_line (int col, int row);
-void show_score ();
-void add_segment ();
-void setup_level ();
-
-/* constants */
 const int maxrow = 15, maxcol = 77;
 const int snake_start_col = 33, snake_start_row = 7;
 const char up_key = 'a', down_key = 'z', left_key = 'o', right_key = 'p';
 const int pause_length = 500000;
 
-/* global variables */
 int score, snake_length, speed, obstacles, level, firstpress, high_score = 0;
 char screen_grid[maxrow][maxcol];
 char direction = right_key;
@@ -23,6 +15,120 @@ struct snake_segment
 {
   int row, col;
 } snake[100];
+
+void setup_level ()
+{
+  /* variables local to setup_level() */
+  int row, col;
+
+  /* Set up global variables for new level */
+  snake_length = level + 4;
+  direction = right_key;
+
+  firstpress = 1;
+
+  /* Fill grid with blanks */
+  for (row = 0; row < maxrow; row++)
+    for (col = 0; col < maxcol; col++)
+      screen_grid[row][col] = ' ';
+
+  /* Fill grid with Xs and food */
+  for (int i = 0; i < obstacles * 2; i++)
+    {
+      row = rand () % maxrow;
+      col = rand () % maxcol;
+
+      if (i < obstacles)
+	screen_grid[row][col] = 'x';
+      else
+	screen_grid[row][col] = '.';
+    }
+
+  /* Create snake array of length snake_length */
+  for (int i = 0; i < snake_length; i++)
+    {
+      snake[i].row = snake_start_row;
+      snake[i].col = snake_start_col + i;
+    }
+
+  /* Draw playing board */
+  draw_line (1, 1);
+
+  for (row = 0; row < maxrow; row++)
+    {
+      gotoxy (1, row + 2);
+
+      textcolor (LIGHTBLUE);
+      cprintf ("|");
+
+      textcolor (WHITE);
+      for (col = 0; col < maxcol; col++)
+	cprintf ("%c", screen_grid[row][col]);
+
+      textcolor (LIGHTBLUE);
+      cprintf ("|");
+    }
+
+  draw_line (1, maxrow + 2);
+
+  show_score ();
+
+  gotoxy (2, maxrow + 5);
+
+  textcolor (LIGHTRED);
+  cprintf
+    ("~~ SNAKE GAME~~ Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start.",
+     left_key, right_key, up_key, down_key);
+}
+
+void draw_line (int col, int row)
+{
+  gotoxy (col, row);
+  textcolor (LIGHTBLUE);
+
+  for (int col = 0; col < maxcol + 2; col++)
+    cprintf ("=");
+}
+
+void show_score ()
+{
+  textcolor (LIGHTCYAN);
+  gotoxy (2, maxrow + 3);
+  cprintf ("Level: %05d", level);
+
+  gotoxy (40, maxrow + 3);
+  textcolor (LIGHTGREEN);
+  cprintf ("Score: %05d", score);
+
+  gotoxy (60, maxrow + 3);
+  textcolor (LIGHTMAGENTA);
+  cprintf ("High Score: %05d", high_score);
+}
+
+void add_segment ()
+{
+  switch (direction)
+    {
+    case (right_key):
+      snake[snake_length].row = snake[snake_length - 1].row;
+      snake[snake_length].col = snake[snake_length - 1].col + 1;
+      break;
+
+    case (left_key):
+      snake[snake_length].row = snake[snake_length - 1].row;
+      snake[snake_length].col = snake[snake_length - 1].col - 1;
+      break;
+
+    case (up_key):
+      snake[snake_length].row = snake[snake_length - 1].row - 1;
+      snake[snake_length].col = snake[snake_length - 1].col;
+      break;
+
+    case (down_key):
+      snake[snake_length].row = snake[snake_length - 1].row + 1;
+      snake[snake_length].col = snake[snake_length - 1].col;
+    }
+}
 
 void main ()
 {
@@ -156,117 +262,9 @@ void main ()
   while (keypress == 'y');
 }
 
-void setup_level ()
-{
-  /* variables local to setup_level() */
-  int row, col;
-
-  /* Set up global variables for new level */
-  snake_length = level + 4;
-  direction = right_key;
-
-  firstpress = 1;
-
-  /* Fill grid with blanks */
-  for (row = 0; row < maxrow; row++)
-    for (col = 0; col < maxcol; col++)
-      screen_grid[row][col] = ' ';
-
-  /* Fill grid with Xs and food */
-  for (int i = 0; i < obstacles * 2; i++)
-    {
-      row = rand () % maxrow;
-      col = rand () % maxcol;
-
-      if (i < obstacles)
-	screen_grid[row][col] = 'x';
-      else
-	screen_grid[row][col] = '.';
-    }
-
-  /* Create snake array of length snake_length */
-  for (int i = 0; i < snake_length; i++)
-    {
-      snake[i].row = snake_start_row;
-      snake[i].col = snake_start_col + i;
-    }
-
-  /* Draw playing board */
-  draw_line (1, 1);
-
-  for (row = 0; row < maxrow; row++)
-    {
-      gotoxy (1, row + 2);
-
-      textcolor (LIGHTBLUE);
-      cprintf ("|");
-
-      textcolor (WHITE);
-      for (col = 0; col < maxcol; col++)
-	cprintf ("%c", screen_grid[row][col]);
-
-      textcolor (LIGHTBLUE);
-      cprintf ("|");
-    }
-
-  draw_line (1, maxrow + 2);
-
-  show_score ();
-
-  gotoxy (2, maxrow + 5);
-
-  textcolor (LIGHTRED);
-  cprintf
-    ("~~ SNAKE GAME~~ Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start.",
-     left_key, right_key, up_key, down_key);
-}
-
-void draw_line (int col, int row)
-{
-  gotoxy (col, row);
-  textcolor (LIGHTBLUE);
-
-  for (int col = 0; col < maxcol + 2; col++)
-    cprintf ("=");
-}
-
-void show_score ()
-{
-  textcolor (LIGHTCYAN);
-  gotoxy (2, maxrow + 3);
-  cprintf ("Level: %05d", level);
-
-  gotoxy (40, maxrow + 3);
-  textcolor (LIGHTGREEN);
-  cprintf ("Score: %05d", score);
-
-  gotoxy (60, maxrow + 3);
-  textcolor (LIGHTMAGENTA);
-  cprintf ("High Score: %05d", high_score);
-}
-
-void add_segment ()
-{
-  switch (direction)
-    {
-    case (right_key):
-      snake[snake_length].row = snake[snake_length - 1].row;
-      snake[snake_length].col = snake[snake_length - 1].col + 1;
-      break;
-
-    case (left_key):
-      snake[snake_length].row = snake[snake_length - 1].row;
-      snake[snake_length].col = snake[snake_length - 1].col - 1;
-      break;
-
-    case (up_key):
-      snake[snake_length].row = snake[snake_length - 1].row - 1;
-      snake[snake_length].col = snake[snake_length - 1].col;
-      break;
-
-    case (down_key):
-      snake[snake_length].row = snake[snake_length - 1].row + 1;
-      snake[snake_length].col = snake[snake_length - 1].col;
-    }
-}
-
+/**
+ * Local Variables:
+ *  version-control: t
+ *  c-file-style: "ellemtel"
+ * End:
+ */
