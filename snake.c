@@ -32,16 +32,16 @@
 /* Esc[Line;ColumnH     - Moves the cursor to the specified position (coordinates) */
 #define gotoxy(x,y)       printf("\033[%d;%dH", y, x)
 /* Esc[Value;...;Valuem - Set Graphics Mode */
-#define textcolor(color)  printf("\033[%dm", color)
+#define textcolor(color)  printf("\033[%sm", color)
 
-#define BLACK         30
-#define LIGHTRED      31        /* Red */
-#define LIGHTGREEN    32        /* Green */
-#define YELLOW        33
-#define LIGHTBLUE     34        /* Blue */
-#define LIGHTMAGENTA  35        /* Magenta */
-#define LIGHTCYAN     36        /* Cyan */
-#define WHITE         37
+#define BLACK         "0;30"
+#define LIGHTRED      "1;31"    /* Red */
+#define LIGHTGREEN    "1;32"    /* Green */
+#define YELLOW        "0;33"
+#define LIGHTBLUE     "1;34"    /* Blue */
+#define LIGHTMAGENTA  "1;35"    /* Magenta */
+#define LIGHTCYAN     "1;36"    /* Cyan */
+#define WHITE         "0;37"
 
 typedef enum { LEFT, RIGHT, UP, DOWN } direction_t;
 
