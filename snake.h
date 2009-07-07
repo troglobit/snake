@@ -22,6 +22,9 @@
 #ifndef __SNAKE_H__
 #define __SNAKE_H__
 
+#define GOLD      '$'
+#define CACTUS    '*'
+
 #define MAXROW    15
 #define MAXCOL    77
 

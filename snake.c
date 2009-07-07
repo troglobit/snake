@@ -45,19 +45,6 @@ void alarm_handler (int signal __attribute__ ((unused)))
    setitimer (ITIMER_REAL, &val, NULL);
 } 
 
-void draw_line (int col, int row)
-{
-   int i;
-
-   gotoxy (col, row);
-   textcolor (LIGHTBLUE);
-
-   for (i = 0; i < MAXCOL + 2; i++)
-   {
-      printf ("=");
-   }
-}
-
 void show_score (void)
 {
    textcolor (LIGHTCYAN);
@@ -71,6 +58,19 @@ void show_score (void)
    gotoxy (60, MAXROW + 3);
    textcolor (LIGHTMAGENTA);
    printf ("High Score: %05d", high_score);
+}
+
+void draw_line (int col, int row)
+{
+   int i;
+
+   gotoxy (col, row);
+   textcolor (LIGHTBLUE);
+
+   for (i = 0; i < MAXCOL + 2; i++)
+   {
+      printf ("=");
+   }
 }
 
 direction_t setup_level (void)
@@ -99,11 +99,11 @@ direction_t setup_level (void)
 
       if (i < obstacles)
       {
-         screen_grid[row][col] = 'x';
+         screen_grid[row][col] = CACTUS;
       }
       else
       {
-         screen_grid[row][col] = '.';
+         screen_grid[row][col] = GOLD;
       }
    }
 
@@ -115,11 +115,11 @@ direction_t setup_level (void)
    }
 
    /* Draw playing board */
-   draw_line (1, 1);
+   draw_line (1, 2);
 
    for (row = 0; row < MAXROW; row++)
    {
-      gotoxy (1, row + 2);
+      gotoxy (1, row + 3);
 
       textcolor (LIGHTBLUE);
       printf ("|");
@@ -134,13 +134,13 @@ direction_t setup_level (void)
       printf ("|");
    }
 
-   draw_line (1, MAXROW + 2);
+   draw_line (1, MAXROW + 3);
 
    show_score ();
 
-   gotoxy (2, MAXROW + 5);
+   gotoxy (1, 1);
    textcolor (LIGHTRED);
-   printf ("~~ SNAKE GAME~~ Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start.",
+   printf ("Micro Snake -- Key Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start",
            keys[LEFT], keys[RIGHT], keys[UP], keys[DOWN]);
 
    return RIGHT;
@@ -233,7 +233,7 @@ int main (void)
          add_segment (dir);
 
          /* Blank last segment of snake */
-         gotoxy (snake[0].col, snake[0].row);
+         gotoxy (snake[0].col, snake[0].row + 1);
          printf (" ");
 
          /* ... and remove it from the array */
@@ -246,7 +246,7 @@ int main (void)
          textcolor (YELLOW);
          for (i = 0; i <= snake_length; i++)
          {
-            gotoxy (snake[i].col, snake[i].row);
+            gotoxy (snake[i].col, snake[i].row + 1);
             printf ("O");
          }
 
@@ -259,7 +259,7 @@ int main (void)
              (snake[snake_length - 1].col > MAXCOL + 1) || 
              (snake[snake_length - 1].col <= 1) ||
              /* Collision detection - obstacles (bad!) */
-             (screen_grid[snake[snake_length - 1].row - 2][snake[snake_length - 1].col - 2] == 'x'))
+             (screen_grid[snake[snake_length - 1].row - 2][snake[snake_length - 1].col - 2] == CACTUS))
          {
             keypress = 'x';      /* i.e. exit loop - game over */
          }
@@ -275,7 +275,7 @@ int main (void)
          }
 
          /* Collision detection - food (good!) */
-         if (screen_grid[snake[snake_length - 1].row - 2][snake[snake_length - 1].col - 2] == '.')
+         if (screen_grid[snake[snake_length - 1].row - 2][snake[snake_length - 1].col - 2] == GOLD)
          {
             /* increase score and length of snake */
             score += snake_length * obstacles;
