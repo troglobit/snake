@@ -24,8 +24,10 @@
 
 #define MAXROW    15
 #define MAXCOL    77
-#define START_COL 33
-#define START_ROW  7
+
+#define START_LEN (4 + level)
+#define START_COL (MAXCOL / 2 - START_LEN)
+#define START_ROW ((MAXROW + 1) / 2 + 1)
 
 /* Esc[Line;ColumnH     - Moves the cursor to the specified position (coordinates) */
 #define gotoxy(x,y)       printf("\033[%d;%dH", y, x)

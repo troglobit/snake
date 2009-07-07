@@ -34,7 +34,7 @@ int score, snake_length, speed, obstacles, level, firstpress, high_score = 0;
 char screen_grid[MAXROW][MAXCOL];
 snake_segment_t snake[100];
 
-void alarm_handler (int signal __attribute__ ((unused)))
+void alarm_handler (int signal)
 {
    static long h[4];
 
@@ -145,6 +145,8 @@ direction_t setup_level (void)
    textcolor (LIGHTRED);
    printf ("~~ SNAKE GAME~~ Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start.",
            keys[LEFT], keys[RIGHT], keys[UP], keys[DOWN]);
+
+   return RIGHT;
 }
 
 void add_segment (direction_t dir)
@@ -197,6 +199,9 @@ int main (void)
    action.sa_flags = 0;
    action.sa_handler = alarm_handler;
    sigaction(SIGALRM, &action, NULL);
+
+   /* Call it once to start the timer. */
+   alarm_handler (0);
 
    do                            /* restart game loop */
    {
