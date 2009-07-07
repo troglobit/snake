@@ -25,6 +25,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
 #include "snake.h"
 
@@ -34,18 +35,14 @@ int score, snake_length, speed, obstacles, level, firstpress, high_score = 0;
 char screen_grid[MAXROW][MAXCOL];
 snake_segment_t snake[100];
 
-void alarm_handler (int signal)
+void alarm_handler (int signal __attribute__ ((unused)))
 {
-   static long h[4];
+   static struct itimerval val;
 
-   if (!signal)
-   {
-      /* On init from main() */
-      h[3] = 1000000 / (level = 2);
-   }
+   val.it_value.tv_sec  = 0;
+   val.it_value.tv_usec = 200000 - level * 10000;
 
-   h[3] -= h[3] / 3000;
-   setitimer (0, (struct itimerval *)h, 0);
+   setitimer (ITIMER_REAL, &val, NULL);
 } 
 
 void draw_line (int col, int row)
@@ -171,6 +168,11 @@ void add_segment (direction_t dir)
       case DOWN:
          snake[snake_length].row = snake[snake_length - 1].row + 1;
          snake[snake_length].col = snake[snake_length - 1].col;
+         break;
+
+      default:
+         /* NOP */
+         break;
    }
 }
 
