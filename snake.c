@@ -26,35 +26,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define MAXROW 15
-#define MAXCOL 77
+#include "snake.h"
 
-/* Esc[Line;ColumnH     - Moves the cursor to the specified position (coordinates) */
-#define gotoxy(x,y)       printf("\033[%d;%dH", y, x)
-/* Esc[Value;...;Valuem - Set Graphics Mode */
-#define textcolor(color)  printf("\033[%sm", color)
-
-#define BLACK         "0;30"
-#define LIGHTRED      "1;31"    /* Red */
-#define LIGHTGREEN    "1;32"    /* Green */
-#define YELLOW        "0;33"
-#define LIGHTBLUE     "1;34"    /* Blue */
-#define LIGHTMAGENTA  "1;35"    /* Magenta */
-#define LIGHTCYAN     "1;36"    /* Cyan */
-#define WHITE         "0;37"
-
-typedef enum { LEFT, RIGHT, UP, DOWN } direction_t;
-
-const int snake_start_col = 33, snake_start_row = 7;
 const char up_key = 'a', down_key = 'z', left_key = 'o', right_key = 'p';
 
 int score, snake_length, speed, obstacles, level, firstpress, high_score = 0;
 char screen_grid[MAXROW][MAXCOL];
-
-struct snake_segment
-{
-   int row, col;
-} snake[100];
+snake_segment_t snake[100];
 
 void alarm_handler (int signal __attribute__ ((unused)))
 {
@@ -135,8 +113,8 @@ direction_t setup_level (void)
    /* Create snake array of length snake_length */
    for (i = 0; i < snake_length; i++)
    {
-      snake[i].row = snake_start_row;
-      snake[i].col = snake_start_col + i;
+      snake[i].row = START_ROW;
+      snake[i].col = START_COL + i;
    }
 
    /* Draw playing board */
