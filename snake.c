@@ -28,7 +28,7 @@
 
 #include "snake.h"
 
-const char up_key = 'a', down_key = 'z', left_key = 'o', right_key = 'p';
+char keys[NUM_KEYS] = {'o', 'p', 'a', 'z'};
 
 int score, snake_length, speed, obstacles, level, firstpress, high_score = 0;
 char screen_grid[MAXROW][MAXCOL];
@@ -143,7 +143,8 @@ direction_t setup_level (void)
 
    gotoxy (2, MAXROW + 5);
    textcolor (LIGHTRED);
-   printf ("~~ SNAKE GAME~~ Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start.", left_key, right_key, up_key, down_key);
+   printf ("~~ SNAKE GAME~~ Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start.",
+           keys[LEFT], keys[RIGHT], keys[UP], keys[DOWN]);
 }
 
 void add_segment (direction_t dir)
@@ -212,13 +213,13 @@ int main (void)
          /* If key has been hit, then check it is a direction key - if so,
           * change direction */
          keypress = (char)getchar ();
-         if (keypress == right_key)
+         if (keypress == keys[RIGHT])
             dir = RIGHT;
-         else if (keypress == left_key)
+         else if (keypress == keys[LEFT])
             dir = LEFT;
-         else if (keypress == up_key)
+         else if (keypress == keys[UP])
             dir = UP;
-         else if (keypress == down_key)
+         else if (keypress == keys[DOWN])
             dir = DOWN;
 
          /* Add a segment to the end of the snake */

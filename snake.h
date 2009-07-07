@@ -41,7 +41,7 @@
 #define LIGHTCYAN     "1;36"    /* Cyan */
 #define WHITE         "0;37"
 
-typedef enum { LEFT, RIGHT, UP, DOWN } direction_t;
+typedef enum { LEFT=0, RIGHT, UP, DOWN, NUM_KEYS } direction_t;
 
 typedef struct snake_segment
 {
