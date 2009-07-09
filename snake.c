@@ -69,7 +69,10 @@ void draw_line (int col, int row)
 
    for (i = 0; i < MAXCOL + 2; i++)
    {
-      printf ("=");
+      if (i == 0 || i == MAXCOL + 1)
+         printf ("+");
+      else
+         printf ("-");
    }
 }
 
@@ -324,6 +327,9 @@ int main (void)
       while ((keypress != 'y') && (keypress != 'n'));
    }
    while (keypress == 'y');
+
+  exit:
+   puts ("\e[2J\e[1;1H");
 
    return WEXITSTATUS(system ("stty sane"));
 }
