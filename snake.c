@@ -29,35 +29,50 @@
 
 #include "snake.h"
 
-char keys[NUM_KEYS] = {'o', 'p', 'a', 'z'};
+/* Default 0.2 sec between snake movement. */
+unsigned int usec_delay = DEFAULT_DELAY;
 
-int score, snake_length, speed, obstacles, level, firstpress, high_score = 0;
-char screen_grid[MAXROW][MAXCOL];
-snake_segment_t snake[100];
 
 void alarm_handler (int signal __attribute__ ((unused)))
 {
    static struct itimerval val;
 
+   if (!signal)
+   {
+      sigset_t set;
+      struct sigaction action;
+
+      /* Set up signal set with just SIGALRM. */
+      sigemptyset(&set);
+      sigaddset(&set, SIGALRM);
+
+      /* Trap SIGALRM. */
+      sigemptyset(&action.sa_mask);
+      sigaddset(&action.sa_mask, SIGALRM);
+      action.sa_flags = 0;
+      action.sa_handler = alarm_handler;
+      sigaction(SIGALRM, &action, NULL);
+   }
+
    val.it_value.tv_sec  = 0;
-   val.it_value.tv_usec = 200000 - level * 10000;
+   val.it_value.tv_usec = usec_delay;
 
    setitimer (ITIMER_REAL, &val, NULL);
 } 
 
-void show_score (void)
+void show_score (screen_t *screen)
 {
    textcolor (LIGHTCYAN);
    gotoxy (2, MAXROW + 3);
-   printf ("Level: %05d", level);
+   printf ("Level: %05d", screen->level);
 
    gotoxy (40, MAXROW + 3);
    textcolor (LIGHTGREEN);
-   printf ("Score: %05d", score);
+   printf ("Score: %05d", screen->score);
 
    gotoxy (60, MAXROW + 3);
    textcolor (LIGHTMAGENTA);
-   printf ("High Score: %05d", high_score);
+   printf ("High Score: %05d", screen->high_score);
 }
 
 void draw_line (int col, int row)
@@ -76,45 +91,58 @@ void draw_line (int col, int row)
    }
 }
 
-direction_t setup_level (void)
+/* If level==0 then just move on to the next level
+ * if level==1 restart game
+ * Otherwise start game at that level. */
+void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
 {
    int i, row, col;
 
-   /* Set up global variables for new level */
-   snake_length = level + 4;
+   srand (getpid ());
 
-   firstpress = 1;
+   /* Initialize on (re)start */
+   if (1 == level)
+   {
+      screen->obstacles = 4;
+      screen->level = 1;
+      screen->score = 0;
+      snake->speed = 14;
+   }
+
+   /* Set up global variables for new level */
+   snake->len = level + 4;
+   usec_delay = DEFAULT_DELAY - level * 10000;
 
    /* Fill grid with blanks */
    for (row = 0; row < MAXROW; row++)
    {
       for (col = 0; col < MAXCOL; col++)
       {
-         screen_grid[row][col] = ' ';
+         screen->grid[row][col] = ' ';
       }
    }
 
    /* Fill grid with Xs and food */
-   for (i = 0; i < obstacles * 2; i++)
+   for (i = 0; i < screen->obstacles * 2; i++)
    {
       row = rand () % MAXROW;
       col = rand () % MAXCOL;
 
-      if (i < obstacles)
+      if (i < screen->obstacles)
       {
-         screen_grid[row][col] = CACTUS;
+         screen->grid[row][col] = CACTUS;
       }
       else
       {
-         screen_grid[row][col] = GOLD;
+         screen->grid[row][col] = GOLD;
       }
    }
 
-   /* Create snake array of length snake_length */
-   for (i = 0; i < snake_length; i++)
+   /* Create snake array of length snake->len */
+   for (i = 0; i < snake->len; i++)
    {
-      snake[i].row = START_ROW;
-      snake[i].col = START_COL + i;
+      snake->body[i].row = START_ROW;
+      snake->body[i].col = START_COL + i;
    }
 
    /* Draw playing board */
@@ -130,7 +158,7 @@ direction_t setup_level (void)
       textcolor (WHITE);
       for (col = 0; col < MAXCOL; col++)
       {
-         printf ("%c", screen_grid[row][col]);
+         printf ("%c", screen->grid[row][col]);
       }
 
       textcolor (LIGHTBLUE);
@@ -139,38 +167,38 @@ direction_t setup_level (void)
 
    draw_line (1, MAXROW + 3);
 
-   show_score ();
+   show_score (screen);
 
    gotoxy (1, 1);
    textcolor (LIGHTRED);
    printf ("Micro Snake -- Key Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start",
            keys[LEFT], keys[RIGHT], keys[UP], keys[DOWN]);
 
-   return RIGHT;
+   snake->dir = RIGHT;
 }
 
-void add_segment (direction_t dir)
+void grow (snake_t *snake)
 {
-   switch (dir)
+   switch (snake->dir)
    {
       case RIGHT:
-         snake[snake_length].row = snake[snake_length - 1].row;
-         snake[snake_length].col = snake[snake_length - 1].col + 1;
+         snake->body[snake->len].row = snake->body[snake->len - 1].row;
+         snake->body[snake->len].col = snake->body[snake->len - 1].col + 1;
          break;
 
       case LEFT:
-         snake[snake_length].row = snake[snake_length - 1].row;
-         snake[snake_length].col = snake[snake_length - 1].col - 1;
+         snake->body[snake->len].row = snake->body[snake->len - 1].row;
+         snake->body[snake->len].col = snake->body[snake->len - 1].col - 1;
          break;
 
       case UP:
-         snake[snake_length].row = snake[snake_length - 1].row - 1;
-         snake[snake_length].col = snake[snake_length - 1].col;
+         snake->body[snake->len].row = snake->body[snake->len - 1].row - 1;
+         snake->body[snake->len].col = snake->body[snake->len - 1].col;
          break;
 
       case DOWN:
-         snake[snake_length].row = snake[snake_length - 1].row + 1;
-         snake[snake_length].col = snake[snake_length - 1].col;
+         snake->body[snake->len].row = snake->body[snake->len - 1].row + 1;
+         snake->body[snake->len].col = snake->body[snake->len - 1].col;
          break;
 
       default:
@@ -180,42 +208,49 @@ void add_segment (direction_t dir)
 }
 
 
+void move (snake_t *snake)
+{
+   int i;
+
+   /* Blank last segment of snake */
+   gotoxy (snake->body[0].col, snake->body[0].row + 1);
+   printf (" ");
+
+   /* ... and remove it from the array */
+   for (i = 1; i <= snake->len; i++)
+   {
+      snake->body[i - 1] = snake->body[i];
+   }
+
+   /* Display snake in yellow */
+   textcolor (YELLOW);
+   for (i = 0; i <= snake->len; i++)
+   {
+      gotoxy (snake->body[i].col, snake->body[i].row + 1);
+      printf ("O");
+   }
+}
+
+
 int main (void)
 {
    int i;
    char keypress;
-   sigset_t set;
-   struct sigaction action;
-   direction_t dir;
+   snake_t snake;
+   screen_t screen;
+   char keys[NUM_KEYS] = DEFAULT_KEYS;
 
-   srand (getpid ());
    if (WEXITSTATUS(system ("stty cbreak -echo stop u")))
    {
       return 1;
    }
 
-   /* Set up signal set with just SIGALRM. */
-   sigemptyset(&set);
-   sigaddset(&set, SIGALRM);
-
-   /* Trap SIGALRM. */
-   sigemptyset(&action.sa_mask);
-   sigaddset(&action.sa_mask, SIGALRM);
-   action.sa_flags = 0;
-   action.sa_handler = alarm_handler;
-   sigaction(SIGALRM, &action, NULL);
-
-   /* Call it once to start the timer. */
+   /* Call it once to initialize the timer. */
    alarm_handler (0);
 
    do                            /* restart game loop */
    {
-      obstacles = 4;
-      level = 1;
-      score = 0;
-      speed = 14;
-
-      dir = setup_level ();
+      setup_level (&screen, &snake, keys, 1);
 
       /* main loop */
       do
@@ -224,53 +259,38 @@ int main (void)
           * change direction */
          keypress = (char)getchar ();
          if (keypress == keys[RIGHT])
-            dir = RIGHT;
+            snake.dir = RIGHT;
          else if (keypress == keys[LEFT])
-            dir = LEFT;
+            snake.dir = LEFT;
          else if (keypress == keys[UP])
-            dir = UP;
+            snake.dir = UP;
          else if (keypress == keys[DOWN])
-            dir = DOWN;
+            snake.dir = DOWN;
 
          /* Add a segment to the end of the snake */
-         add_segment (dir);
+         grow (&snake);
 
-         /* Blank last segment of snake */
-         gotoxy (snake[0].col, snake[0].row + 1);
-         printf (" ");
-
-         /* ... and remove it from the array */
-         for (i = 1; i <= snake_length; i++)
-         {
-            snake[i - 1] = snake[i];
-         }
-
-         /* Display snake in yellow */
-         textcolor (YELLOW);
-         for (i = 0; i <= snake_length; i++)
-         {
-            gotoxy (snake[i].col, snake[i].row + 1);
-            printf ("O");
-         }
+         /* Move the snake one position. */
+         move (&snake);
 
          /* keeps cursor flashing in one place instead of following snake */
          gotoxy (1, 1);
 
          /* Collision detection - walls (bad!) */
-         if ((snake[snake_length - 1].row > MAXROW + 1) ||
-             (snake[snake_length - 1].row <= 1) ||
-             (snake[snake_length - 1].col > MAXCOL + 1) || 
-             (snake[snake_length - 1].col <= 1) ||
+         if ((snake.body[snake.len - 1].row > MAXROW + 1) ||
+             (snake.body[snake.len - 1].row <= 1) ||
+             (snake.body[snake.len - 1].col > MAXCOL + 1) || 
+             (snake.body[snake.len - 1].col <= 1) ||
              /* Collision detection - obstacles (bad!) */
-             (screen_grid[snake[snake_length - 1].row - 2][snake[snake_length - 1].col - 2] == CACTUS))
+             (screen.grid[snake.body[snake.len - 1].row - 2][snake.body[snake.len - 1].col - 2] == CACTUS))
          {
             keypress = 'x';      /* i.e. exit loop - game over */
          }
 
          /* Collision detection - snake (bad!) */
-         for (i = 0; i < snake_length - 1; i++)
+         for (i = 0; i < snake.len - 1; i++)
          {
-            if ((snake[snake_length - 1].row) == (snake[i].row) && (snake[snake_length - 1].col) == (snake[i].col))
+            if ((snake.body[snake.len - 1].row) == (snake.body[i].row) && (snake.body[snake.len - 1].col) == (snake.body[i].col))
             {
                keypress = 'x';   /* i.e. exit loop - game over */
                break;            /* no need to check any more segments */
@@ -278,39 +298,40 @@ int main (void)
          }
 
          /* Collision detection - food (good!) */
-         if (screen_grid[snake[snake_length - 1].row - 2][snake[snake_length - 1].col - 2] == GOLD)
+         if (screen.grid[snake.body[snake.len - 1].row - 2][snake.body[snake.len - 1].col - 2] == GOLD)
          {
             /* increase score and length of snake */
-            score += snake_length * obstacles;
-            show_score ();
-            snake_length++;
-            add_segment (dir);
+            screen.score += snake.len * screen.obstacles;
+            show_score (&screen);
+            snake.len++;
+            grow (&snake);
 
             /* if length of snake reaches certain size, onto next level */
-            if (snake_length == (level + 3) * 2)
+            if (snake.len == (screen.level + 3) * 2)
             {
-               score += level * 1000;
-               obstacles += 2;
-               level++;          /* add to obstacles */
+               screen.score += screen.level * 1000;
+               screen.obstacles += 2;
+               screen.level++;          /* add to obstacles */
 
-               if ((level % 5 == 0) && (speed > 1))
+               if ((screen.level % 5 == 0) && (snake.speed > 1))
                {
-                  speed--;       /* increase speed every 5 levels */
+                  snake.speed--;       /* increase snake.speed every 5 levels */
                }
 
-               setup_level ();   /* display next level */
+               /* Go to next level */
+               setup_level (&screen, &snake, keys, 0);
             }
          }
       }
       while (keypress != 'x');
 
-      if (score > high_score)
+      if (screen.score > screen.high_score)
       {
          /* New high score! */
-         high_score = score;
+         screen.high_score = screen.score;
       }
 
-      show_score ();
+      show_score (&screen);
 
       gotoxy (30, 6);
       textcolor (LIGHTRED);
@@ -328,7 +349,6 @@ int main (void)
    }
    while (keypress == 'y');
 
-  exit:
    puts ("\e[2J\e[1;1H");
 
    return WEXITSTATUS(system ("stty sane"));

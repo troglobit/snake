@@ -32,6 +32,8 @@
 #define START_COL (MAXCOL / 2 - START_LEN)
 #define START_ROW ((MAXROW + 1) / 2 + 1)
 
+#define DEFAULT_DELAY 200000
+
 /* Esc[Line;ColumnH     - Moves the cursor to the specified position (coordinates) */
 #define gotoxy(x,y)       printf("\033[%d;%dH", y, x)
 /* Esc[Value;...;Valuem - Set Graphics Mode */
@@ -46,12 +48,33 @@
 #define LIGHTCYAN     "1;36"    /* Cyan */
 #define WHITE         "0;37"
 
+#define DEFAULT_KEYS  {'o', 'p', 'a', 'z'}
+
 typedef enum { LEFT=0, RIGHT, UP, DOWN, NUM_KEYS } direction_t;
 
-typedef struct snake_segment
+typedef struct
 {
    int row, col;
 } snake_segment_t;
+
+typedef struct
+{
+   unsigned int    speed;
+   direction_t     dir;
+
+   int             len;
+   snake_segment_t body[100];
+} snake_t;
+
+typedef struct
+{
+   int level;
+   int score;
+   int high_score;
+   int obstacles;
+
+   char grid[MAXROW][MAXCOL];
+} screen_t;
 
 #endif /* __SNAKE_H__ */
 
