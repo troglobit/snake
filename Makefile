@@ -7,7 +7,7 @@
 
 VERSION   = 1.0.0
 CC       ?= gcc
-CFLAGS   += -Os -W -Wall -Werror
+CFLAGS   += -W -Wall -Werror
 
 all: snake
 

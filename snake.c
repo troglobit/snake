@@ -29,9 +29,14 @@
 
 #include "snake.h"
 
+#ifdef DEBUG
+#define DBG(fmt, args...) fprintf (stderr, fmt, ##args)
+#else
+#define DBG(fmt, args...)
+#endif
+
 /* Default 0.2 sec between snake movement. */
 unsigned int usec_delay = DEFAULT_DELAY;
-
 
 void alarm_handler (int signal __attribute__ ((unused)))
 {
@@ -122,7 +127,7 @@ void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
       }
    }
 
-   /* Fill grid with Xs and food */
+   /* Fill grid with objects */
    for (i = 0; i < screen->obstacles * 2; i++)
    {
       row = rand () % MAXROW;
@@ -231,10 +236,54 @@ void move (snake_t *snake)
    }
 }
 
+int collide_walls (snake_t *snake)
+{
+   snake_segment_t *head = &snake->body[snake->len - 1];
+
+   if ((head->row > MAXROW + 1) || (head->row <= 1) ||
+       (head->col > MAXCOL + 1) || (head->col <= 1))
+   {
+      DBG("Wall collision.\n");
+      return 1;
+   }
+
+   return 0;
+}
+
+int collide_object (snake_t *snake, screen_t *screen, char object)
+{
+   snake_segment_t *head = &snake->body[snake->len - 1];
+   
+   if (screen->grid[head->row - 2][head->col - 2] == object)
+   {
+      DBG("Object '%c' collision.\n", object);
+      return 1;
+   }
+
+   return 0;
+}
+
+int collide_self (snake_t *snake)
+{
+   int i;
+   snake_segment_t *head = &snake->body[snake->len - 1];
+
+   for (i = 0; i < snake->len - 1; i++)
+   {
+      snake_segment_t *body = &snake->body[i];
+
+      if (head->row == body->row && head->col == body->col)
+      {
+         DBG("Self collision.\n");
+         return 1;
+      }
+   }
+
+   return 0;
+}
 
 int main (void)
 {
-   int i;
    char keypress;
    snake_t snake;
    screen_t screen;
@@ -242,6 +291,7 @@ int main (void)
 
    if (WEXITSTATUS(system ("stty cbreak -echo stop u")))
    {
+      fprintf (stderr, "Failed setting up the screen, is 'stty' missing?\n");
       return 1;
    }
 
@@ -276,29 +326,17 @@ int main (void)
          /* keeps cursor flashing in one place instead of following snake */
          gotoxy (1, 1);
 
-         /* Collision detection - walls (bad!) */
-         if ((snake.body[snake.len - 1].row > MAXROW + 1) ||
-             (snake.body[snake.len - 1].row <= 1) ||
-             (snake.body[snake.len - 1].col > MAXCOL + 1) || 
-             (snake.body[snake.len - 1].col <= 1) ||
-             /* Collision detection - obstacles (bad!) */
-             (screen.grid[snake.body[snake.len - 1].row - 2][snake.body[snake.len - 1].col - 2] == CACTUS))
+         if (collide_walls (&snake) || collide_object (&snake, &screen, CACTUS))
          {
-            keypress = 'x';      /* i.e. exit loop - game over */
+            keypress = 'x';     /* game over */
          }
 
-         /* Collision detection - snake (bad!) */
-         for (i = 0; i < snake.len - 1; i++)
+         if (collide_self (&snake))
          {
-            if ((snake.body[snake.len - 1].row) == (snake.body[i].row) && (snake.body[snake.len - 1].col) == (snake.body[i].col))
-            {
-               keypress = 'x';   /* i.e. exit loop - game over */
-               break;            /* no need to check any more segments */
-            }
+            keypress = 'x';     /* game over */
          }
 
-         /* Collision detection - food (good!) */
-         if (screen.grid[snake.body[snake.len - 1].row - 2][snake.body[snake.len - 1].col - 2] == GOLD)
+         if (collide_object (&snake, &screen, GOLD))
          {
             /* increase score and length of snake */
             screen.score += snake.len * screen.obstacles;
