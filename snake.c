@@ -71,6 +71,9 @@ void show_score (screen_t *screen)
    gotoxy (2, MAXROW + 3);
    printf ("Level: %05d", screen->level);
 
+   gotoxy (20, MAXROW + 3);
+   printf ("Gold Left: %05d", screen->gold);
+
    gotoxy (40, MAXROW + 3);
    textcolor (LIGHTGREEN);
    printf ("Score: %05d", screen->score);
@@ -113,8 +116,20 @@ void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
       screen->score = 0;
       snake->speed = 14;
    }
+   else
+   {
+      screen->score += screen->level * 1000;
+      screen->obstacles += 2;
+      screen->level++;          /* add to obstacles */
+
+      if ((screen->level % 5 == 0) && (snake->speed > 1))
+      {
+         snake->speed--;        /* increase snake->speed every 5 levels */
+      }
+   }
 
    /* Set up global variables for new level */
+   screen->gold = 0;
    snake->len = level + 4;
    usec_delay = DEFAULT_DELAY - level * 10000;
 
@@ -139,6 +154,7 @@ void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
       }
       else
       {
+         screen->gold++;
          screen->grid[row][col] = GOLD;
       }
    }
@@ -182,7 +198,7 @@ void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
    snake->dir = RIGHT;
 }
 
-void grow (snake_t *snake)
+void move (snake_t *snake)
 {
    switch (snake->dir)
    {
@@ -213,7 +229,7 @@ void grow (snake_t *snake)
 }
 
 
-void move (snake_t *snake)
+void update (snake_t *snake)
 {
    int i;
 
@@ -317,21 +333,17 @@ int main (void)
          else if (keypress == keys[DOWN])
             snake.dir = DOWN;
 
-         /* Add a segment to the end of the snake */
-         grow (&snake);
-
          /* Move the snake one position. */
          move (&snake);
+
+         update (&snake);
 
          /* keeps cursor flashing in one place instead of following snake */
          gotoxy (1, 1);
 
-         if (collide_walls (&snake) || collide_object (&snake, &screen, CACTUS))
-         {
-            keypress = 'x';     /* game over */
-         }
-
-         if (collide_self (&snake))
+         if (collide_walls (&snake) || 
+             collide_object (&snake, &screen, CACTUS) ||
+             collide_self (&snake))
          {
             keypress = 'x';     /* game over */
          }
@@ -339,23 +351,15 @@ int main (void)
          if (collide_object (&snake, &screen, GOLD))
          {
             /* increase score and length of snake */
+            screen.gold--;
             screen.score += snake.len * screen.obstacles;
             show_score (&screen);
             snake.len++;
-            grow (&snake);
+            move (&snake);
+            update (&snake);
 
-            /* if length of snake reaches certain size, onto next level */
-            if (snake.len == (screen.level + 3) * 2)
+            if (!screen.gold)
             {
-               screen.score += screen.level * 1000;
-               screen.obstacles += 2;
-               screen.level++;          /* add to obstacles */
-
-               if ((screen.level % 5 == 0) && (snake.speed > 1))
-               {
-                  snake.speed--;       /* increase snake.speed every 5 levels */
-               }
-
                /* Go to next level */
                setup_level (&screen, &snake, keys, 0);
             }
@@ -387,7 +391,7 @@ int main (void)
    }
    while (keypress == 'y');
 
-   puts ("\e[2J\e[1;1H");
+   clrscr ();
 
    return WEXITSTATUS(system ("stty sane"));
 }

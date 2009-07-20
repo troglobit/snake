@@ -34,10 +34,14 @@
 
 #define DEFAULT_DELAY 200000
 
+/* Esc[2JEsc[1;1H       - Clear screen and move cursor to 1,1 (upper left) pos. */
+#define clrscr()          puts ("\e[2J\e[1;1H")
 /* Esc[Line;ColumnH     - Moves the cursor to the specified position (coordinates) */
-#define gotoxy(x,y)       printf("\033[%d;%dH", y, x)
+#define gotoxy(x,y)       printf("\e[%d;%dH", y, x)
 /* Esc[Value;...;Valuem - Set Graphics Mode */
-#define textcolor(color)  printf("\033[%sm", color)
+#define textcolor(color)  printf("\e[%sm", color)
+/*  */
+#defein textbackground(color) printf("\e[")
 
 #define BLACK         "0;30"
 #define LIGHTRED      "1;31"    /* Red */
@@ -71,6 +75,7 @@ typedef struct
    int level;
    int score;
    int high_score;
+   int gold;
    int obstacles;
 
    char grid[MAXROW][MAXCOL];
