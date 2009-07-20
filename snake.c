@@ -23,9 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <sys/wait.h>
-#include <unistd.h>
+#include <time.h>
 
 #include "conio.h"
 #include "snake.h"
@@ -39,25 +38,44 @@
 /* Default 0.2 sec between snake movement. */
 unsigned int usec_delay = DEFAULT_DELAY;
 
+int sigsetup (int signo, void (*callback)(int))
+{
+   struct sigaction action;
+
+   sigemptyset(&action.sa_mask);
+   //sigaddset(&action.sa_mask, signo);
+   action.sa_flags = 0;
+   action.sa_handler = callback;
+   if (SIGALRM == signo)
+   {
+#ifdef SA_INTERRUPT
+      action.sa_flags |= SA_INTERRUPT; /* SunOS 4.x */
+#endif
+   }
+   else
+   {
+#ifdef SA_RESTART
+      action.sa_flags |= SA_RESTART; /* SVR4, 4.4BSD */
+#endif
+   }
+
+   return sigaction (signo, &action, NULL);
+}
+
+void sig_handler (int signal __attribute__ ((unused)))
+{
+   clrscr ();
+   printf ("Received signal %d\n", signal);
+   exit (WEXITSTATUS(system ("stty sane")));
+}
+
 void alarm_handler (int signal __attribute__ ((unused)))
 {
    static struct itimerval val;
 
    if (!signal)
    {
-      sigset_t set;
-      struct sigaction action;
-
-      /* Set up signal set with just SIGALRM. */
-      sigemptyset(&set);
-      sigaddset(&set, SIGALRM);
-
-      /* Trap SIGALRM. */
-      sigemptyset(&action.sa_mask);
-      sigaddset(&action.sa_mask, SIGALRM);
-      action.sa_flags = 0;
-      action.sa_handler = alarm_handler;
-      sigaction(SIGALRM, &action, NULL);
+      sigsetup (SIGALRM, alarm_handler);
    }
 
    val.it_value.tv_sec  = 0;
@@ -69,18 +87,19 @@ void alarm_handler (int signal __attribute__ ((unused)))
 void show_score (screen_t *screen)
 {
    textcolor (LIGHTCYAN);
-   gotoxy (2, MAXROW + 3);
+   gotoxy (3, MAXROW + 2);
    printf ("Level: %05d", screen->level);
 
-   gotoxy (20, MAXROW + 3);
+   textcolor (YELLOW);
+   gotoxy (20, MAXROW + 2);
    printf ("Gold Left: %05d", screen->gold);
 
-   gotoxy (40, MAXROW + 3);
    textcolor (LIGHTGREEN);
+   gotoxy (40, MAXROW + 2);
    printf ("Score: %05d", screen->score);
 
-   gotoxy (60, MAXROW + 3);
    textcolor (LIGHTMAGENTA);
+   gotoxy (60, MAXROW + 2);
    printf ("High Score: %05d", screen->high_score);
 }
 
@@ -103,19 +122,20 @@ void draw_line (int col, int row)
 /* If level==0 then just move on to the next level
  * if level==1 restart game
  * Otherwise start game at that level. */
-void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
+void setup_level (screen_t *screen, snake_t *snake, int level)
 {
    int i, row, col;
 
-   srand (getpid ());
+   srand ((unsigned int)time (NULL));
 
    /* Initialize on (re)start */
    if (1 == level)
    {
+      screen->score = 0;
       screen->obstacles = 4;
       screen->level = 1;
-      screen->score = 0;
       snake->speed = 14;
+      snake->dir = RIGHT;
    }
    else
    {
@@ -146,8 +166,13 @@ void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
    /* Fill grid with objects */
    for (i = 0; i < screen->obstacles * 2; i++)
    {
-      row = rand () % MAXROW;
-      col = rand () % MAXCOL;
+      /* Find free space to place an object on. */
+      do
+      {
+         row = rand () % MAXROW;
+         col = rand () % MAXCOL;
+      }
+      while (screen->grid[row][col] != ' ');
 
       if (i < screen->obstacles)
       {
@@ -164,15 +189,16 @@ void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
    for (i = 0; i < snake->len; i++)
    {
       snake->body[i].row = START_ROW;
-      snake->body[i].col = START_COL + i;
+      snake->body[i].col = snake->dir == LEFT ? START_COL - i : START_COL + i;
    }
 
    /* Draw playing board */
-   draw_line (1, 2);
+   clrscr();
+   draw_line (1, 1);
 
    for (row = 0; row < MAXROW; row++)
    {
-      gotoxy (1, row + 3);
+      gotoxy (1, row + 2);
 
       textcolor (LIGHTBLUE);
       printf ("|");
@@ -187,16 +213,15 @@ void setup_level (screen_t *screen, snake_t *snake, char keys[], int level)
       printf ("|");
    }
 
-   draw_line (1, MAXROW + 3);
+   draw_line (1, MAXROW + 2);
 
    show_score (screen);
 
-   gotoxy (1, 1);
    textcolor (LIGHTRED);
-   printf ("Micro Snake -- Key Left: %c, Right: %c, Up: %c, Down: %c, Exit: x. Any key to start",
-           keys[LEFT], keys[RIGHT], keys[UP], keys[DOWN]);
-
-   snake->dir = RIGHT;
+   gotoxy (3, 1);
+   printf ("h:Help");
+   gotoxy (32, 1);
+   printf ("Micro Snake v%s", VERSION);
 }
 
 void move (snake_t *snake)
@@ -235,8 +260,9 @@ void update (snake_t *snake)
    int i;
 
    /* Blank last segment of snake */
-   gotoxy (snake->body[0].col, snake->body[0].row + 1);
-   printf (" ");
+   textattr (RESETATTR);
+   gotoxy (snake->body[0].col + 1, snake->body[0].row + 1);
+   puts (" ");
 
    /* ... and remove it from the array */
    for (i = 1; i <= snake->len; i++)
@@ -245,20 +271,24 @@ void update (snake_t *snake)
    }
 
    /* Display snake in yellow */
-   textcolor (YELLOW);
-   for (i = 0; i <= snake->len; i++)
+   textbackground (YELLOW);
+   for (i = 0; i < snake->len; i++)
    {
-      gotoxy (snake->body[i].col, snake->body[i].row + 1);
-      printf ("O");
+      gotoxy (snake->body[i].col + 1, snake->body[i].row + 1);
+      puts (" ");
    }
+   textattr (RESETATTR);
+
+   gotoxy (71, 1);
+   printf ("(%02d,%02d)", snake->body[snake->len - 1].col, snake->body[snake->len - 1].row);
 }
 
 int collide_walls (snake_t *snake)
 {
    snake_segment_t *head = &snake->body[snake->len - 1];
 
-   if ((head->row > MAXROW + 1) || (head->row <= 1) ||
-       (head->col > MAXCOL + 1) || (head->col <= 1))
+   if ((head->row > MAXROW) || (head->row < 1) ||
+       (head->col > MAXCOL) || (head->col < 1))
    {
       DBG("Wall collision.\n");
       return 1;
@@ -271,7 +301,7 @@ int collide_object (snake_t *snake, screen_t *screen, char object)
 {
    snake_segment_t *head = &snake->body[snake->len - 1];
    
-   if (screen->grid[head->row - 2][head->col - 2] == object)
+   if (screen->grid[head->row - 1][head->col - 1] == object)
    {
       DBG("Object '%c' collision.\n", object);
       return 1;
@@ -315,9 +345,13 @@ int main (void)
    /* Call it once to initialize the timer. */
    alarm_handler (0);
 
+   sigsetup (SIGINT, sig_handler);
+   sigsetup (SIGHUP, sig_handler);
+   sigsetup (SIGTERM, sig_handler);
+
    do                            /* restart game loop */
    {
-      setup_level (&screen, &snake, keys, 1);
+      setup_level (&screen, &snake, 1);
 
       /* main loop */
       do
@@ -362,7 +396,7 @@ int main (void)
             if (!screen.gold)
             {
                /* Go to next level */
-               setup_level (&screen, &snake, keys, 0);
+               setup_level (&screen, &snake, 0);
             }
          }
       }
@@ -376,11 +410,11 @@ int main (void)
 
       show_score (&screen);
 
-      gotoxy (30, 6);
+      gotoxy (32, 6);
       textcolor (LIGHTRED);
-      printf ("G A M E   O V E R");
+      printf ("-G A M E  O V E R-");
 
-      gotoxy (30, 9);
+      gotoxy (32, 9);
       textcolor (YELLOW);
       printf ("Another Game (y/n)? ");
 
