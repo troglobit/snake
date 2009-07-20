@@ -1,6 +1,5 @@
-/* Micro Snake, based on a simple simple snake game by Simon Huggins
+/* A conio.h like implementation for VTANSI displays.
  * 
- * Copyright (c) 2003, 2004 Simon Huggins <webmaster@simonhuggins.com>
  * Copyright (c) 2009, Joachim Nilsson <joachim.nilsson@member.fsf.org>
  * 
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -14,9 +13,6 @@
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- *
- * Original Borland Builder C/C++ snake code available at Simon's home page
- * http://www.simonhuggins.com/courses/cbasics/course_notes/snake.htm
  */
 
 #ifndef __CONIO_H__
@@ -24,6 +20,16 @@
 
 #include <stdio.h>
 
+/* Attributes */
+#define RESETATTR    0
+#define BRIGHT       1
+#define DIM          2
+#define UNDERSCORE   4
+#define BLINK        5           /* May not work on all displays. */
+#define REVERSE      7
+#define HIDDEN       8
+
+/* Colors for text and background */
 #define BLACK        0x0
 #define RED          0x1
 #define GREEN        0x2
@@ -44,12 +50,21 @@
 
 /* Esc[2JEsc[1;1H             - Clear screen and move cursor to 1,1 (upper left) pos. */
 #define clrscr()              puts ("\e[2J\e[1;1H")
+/* Esc[K                      - Erases from the current cursor position to the end of the current line. */
+#define clreol()              puts ("\e[K")
+/* Esc[2K                     - Erases the entire current line. */
+#define delline()             puts ("\e[2K")
 /* Esc[Line;ColumnH           - Moves the cursor to the specified position (coordinates) */
 #define gotoxy(x,y)           printf("\e[%d;%dH", y, x)
 /* Esc[Value;...;Valuem       - Set Graphics Mode */
-#define textcolor(color)      printf("\e[%d;%dm", color & 0x10 ? 1 : 0, (color & 0xF) + 30)
-/* Esc[Value;...;Valuem       - Set Graphics Mode */
-#define textbackground(color) printf("\e[%d;%dm", color & 0x10 ? 1 : 0, (color & 0xF) + 40)
+#define __set_gm(attr,color,val)                                        \
+        if (!color)                                                     \
+                printf("\e[%dm", attr);                                 \
+        else                                                            \
+                printf("\e[%d;%dm", color & 0x10 ? 1 : 0, (color & 0xF) + val)
+#define textattr(attr)        __set_gm(attr, 0, 0)
+#define textcolor(color)      __set_gm(RESETATTR, color, 30)
+#define textbackground(color) __set_gm(RESETATTR, color, 40)
 
 #endif /* __CONIO_H__ */
 
