@@ -19,50 +19,39 @@
  * http://www.simonhuggins.com/courses/cbasics/course_notes/snake.htm
  */
 
-#ifndef __SNAKE_H__
-#define __SNAKE_H__
+#ifndef __CONIO_H__
+#define __CONIO_H__
 
-#define GOLD      '$'
-#define CACTUS    '*'
+#include <stdio.h>
 
-#define MAXROW    15
-#define MAXCOL    77
+#define BLACK        0x0
+#define RED          0x1
+#define GREEN        0x2
+#define BROWN        0x3
+#define BLUE         0x4
+#define MAGENTA      0x5
+#define CYAN         0x6
+#define LIGHTGREY    0x7
 
-#define START_LEN (4 + level)
-#define START_COL (MAXCOL / 2 - START_LEN)
-#define START_ROW ((MAXROW + 1) / 2 + 1)
+#define DARKGREY     0x10
+#define LIGHTRED     0x11
+#define LIGHTGREEN   0x12
+#define YELLOW       0x13
+#define LIGHTBLUE    0x14
+#define LIGHTMAGENTA 0x15
+#define LIGHTCYAN    0x16
+#define WHITE        0x17
 
-#define DEFAULT_DELAY 200000
-#define DEFAULT_KEYS  {'o', 'p', 'a', 'z'}
+/* Esc[2JEsc[1;1H             - Clear screen and move cursor to 1,1 (upper left) pos. */
+#define clrscr()              puts ("\e[2J\e[1;1H")
+/* Esc[Line;ColumnH           - Moves the cursor to the specified position (coordinates) */
+#define gotoxy(x,y)           printf("\e[%d;%dH", y, x)
+/* Esc[Value;...;Valuem       - Set Graphics Mode */
+#define textcolor(color)      printf("\e[%d;%dm", color & 0x10 ? 1 : 0, (color & 0xF) + 30)
+/* Esc[Value;...;Valuem       - Set Graphics Mode */
+#define textbackground(color) printf("\e[%d;%dm", color & 0x10 ? 1 : 0, (color & 0xF) + 40)
 
-typedef enum { LEFT=0, RIGHT, UP, DOWN, NUM_KEYS } direction_t;
-
-typedef struct
-{
-   int row, col;
-} snake_segment_t;
-
-typedef struct
-{
-   unsigned int    speed;
-   direction_t     dir;
-
-   int             len;
-   snake_segment_t body[100];
-} snake_t;
-
-typedef struct
-{
-   int level;
-   int score;
-   int high_score;
-   int gold;
-   int obstacles;
-
-   char grid[MAXROW][MAXCOL];
-} screen_t;
-
-#endif /* __SNAKE_H__ */
+#endif /* __CONIO_H__ */
 
 /**
  * Local Variables:

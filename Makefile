@@ -11,7 +11,7 @@ CFLAGS   += -W -Wall -Werror
 
 all: snake
 
-snake.o: Makefile snake.c snake.h
+snake.o: Makefile snake.c snake.h conio.h
 
 clean:
 	-@$(RM) snake snake.o
