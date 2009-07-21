@@ -91,15 +91,15 @@ void show_score (screen_t *screen)
    printf ("Level: %05d", screen->level);
 
    textcolor (YELLOW);
-   gotoxy (20, MAXROW + 2);
+   gotoxy (21, MAXROW + 2);
    printf ("Gold Left: %05d", screen->gold);
 
    textcolor (LIGHTGREEN);
-   gotoxy (40, MAXROW + 2);
+   gotoxy (43, MAXROW + 2);
    printf ("Score: %05d", screen->score);
 
    textcolor (LIGHTMAGENTA);
-   gotoxy (60, MAXROW + 2);
+   gotoxy (61, MAXROW + 2);
    printf ("High Score: %05d", screen->high_score);
 }
 
@@ -108,6 +108,7 @@ void draw_line (int col, int row)
    int i;
 
    gotoxy (col, row);
+   textbackground (LIGHTBLUE);
    textcolor (LIGHTBLUE);
 
    for (i = 0; i < MAXCOL + 2; i++)
@@ -117,6 +118,8 @@ void draw_line (int col, int row)
       else
          printf ("-");
    }
+
+   textattr (RESETATTR);
 }
 
 /* If level==0 then just move on to the next level
@@ -201,7 +204,9 @@ void setup_level (screen_t *screen, snake_t *snake, int level)
       gotoxy (1, row + 2);
 
       textcolor (LIGHTBLUE);
+      textbackground (LIGHTBLUE);
       printf ("|");
+      textattr (RESETATTR);
 
       textcolor (WHITE);
       for (col = 0; col < MAXCOL; col++)
@@ -210,7 +215,9 @@ void setup_level (screen_t *screen, snake_t *snake, int level)
       }
 
       textcolor (LIGHTBLUE);
+      textbackground (LIGHTBLUE);
       printf ("|");
+      textattr (RESETATTR);
    }
 
    draw_line (1, MAXROW + 2);
@@ -220,8 +227,8 @@ void setup_level (screen_t *screen, snake_t *snake, int level)
    textcolor (LIGHTRED);
    gotoxy (3, 1);
    printf ("h:Help");
-   gotoxy (32, 1);
-   printf ("Micro Snake v%s", VERSION);
+   gotoxy (30, 1);
+   printf ("[ Micro Snake v%s ]", VERSION);
 }
 
 void move (snake_t *snake)
