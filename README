@@ -3,12 +3,12 @@ README                                          -*-text-*-
 Welcome to Micro Snake, based on an original implementation by Simon Huggins.
 Current maintainer is Joachim Nilsson.
 
-Regarding the name, I decided to continue the theme I started with Micro Tetris.
-This version of the snake (worm) is very small and only utilizes ANSI escape
-sequences to draw the board. Hence it is very suitable for todays small embedded
-devices.
+Regarding the name, I decided to continue the theme I started with Micro
+Tetris.  This version of the snake (worm) game is very small and only utilizes
+ANSI escape sequences to draw the board. Hence it is very suitable for todays
+small embedded devices.
 
-The game is available from both as a Git source control archive and as traditional
+The game is available both as a Git source control archive and as traditional
 tarball releases from FTP:
 
 	git clone http://git.vmlinux.org/snake.git
@@ -21,60 +21,60 @@ http://www.simonhuggins.com/courses/cbasics/course_notes/snake.htm
 
 Introduction
 ============
-The following is an example game written in C based on the game called 'snake' which
-has been around since the earliest days of home computing (I can remember writing a
-version of it for my ZX81), and has re-emerged in recent years on mobile phones.
+Snake is a video game released during the mid 1970s and has maintained
+popularity since then, becoming somewhat of a classic.  The first known
+microcomputer version of Snake, titled 'Worm', was programmed in 1978 by
+P. Trefonas (USA) on the TRS-80 computer, and published by CLOAD magazine the
+same year. This was followed shortly afterwards with versions from the same
+author for the PET and Apple II computers. A microcomputer port of Hustle was
+first written by P. Trefonas in 1979 and published by CLOAD magazine [2]. This
+was later released by Milton Bradley for the TI-99/4A in 1980.
 
-It isn't the world's greatest game, but it does give you an idea of what you can
-achieve with a relatively simple C program, and perhaps the basis by which to extend
-the principles and create more interesting games of your own.
+                        -- http://en.wikipedia.org/wiki/Snake_%28video_game%29
 
 Playing the game
 ================
-You can download the executable to try out the game without having to compile it if
-you wish. Download it by clicking here - it is about 123k in length.
+The aim of the game is to collect the gold ($), avoid cactuses (*), borders,
+and colliding with the snake itself. As you collect gold, the snake gets
+longer, thus increasing the likelihood of crashing into yourself.  When you
+have collected all gold you are abruptly hauled to the next level.  For each
+new level the snake gets longer and the amount of gold and cactuses increases.
 
-Note that on faster PCs, it will be unplayably fast, so you will need to re-compile
-it with the pause_length constant set to a higher value. My PC is about 350MHz and it
-is OK.
+You get scored according to the length of the snake and the number of cactuses
+on the screen.  The speed increases every 5 levels.
 
-To move the snake, use 'a' for up, 'z' for down, 'o' for left and 'p' for
-right. Again, there are constants you can change if you want to alter these
-settings. Press 'x' to exit the game at any time.
-
-The aim of the game is to collect the dots (food) and avoid the obstacles (crosses,
-borders, and the snake itself). As you collect food, the snake gets longer, so
-increasing your likelihood of crashing into yourself. When you have collected enough
-food, you progress onto the next level, where your snake gets longer, and the amount
-of food to collect to progress through the level gets larger.
-
-You get scored according to the length of the snake and the number of 'x' obstacles
-on the screen.
-
-The speed increases every 5 levels.
-
-You get a bonus when you complete the level of 1000, increasing by 1000 each level
-(e.g. complete level 5, you get a 5000 bonus).
+You get a bonus of 1000 points when you complete each level.
 
 There is no concept of lives. Once you hit an obstacle, that's it, game over.
 
-Make sure you do not have the caps lock on, otherwise the keys will fail to respond.
+To move the snake:
+
+   a    - Up,
+   z    - Down,
+   o    - Left
+   p    - Right
+
+   f    - Left turn
+   j    - Right turn
+
+   q    - Quit the game at any time.
+
+There is a define in snake.h you can change if you want to alter these
+settings.  Make sure you do not have caps lock on, otherwise the keys will
+fail to respond.
 
 The Code
 ========
 The orignal version of the source code is available as the first commit of the
-official Git repository.  It was reasonably well structured, but, as the original
-author admints, by no means perfect.  Hey, what code is?
+official Git repository.  It was reasonably well structured, but, as the
+original author admints, by no means perfect.  Hey, what code is?
 
-Note that Simon's version it uses library functions that are not available on all C
-compilers -- it was designed using Borland C++ Builder / Turbo C.  Also it uses a few
-C++ concepts not available in standard C - e.g. const for a constant (you would use
-#define in normal C). You may also have to change your compiler settings if you have
-them set to ANSI C to C++ instead - the for loops define a local instance of i as a
-loop counter, a concept to available in standard C.
+Note that Simon's original uses library functions that are not available on
+all systems -- it was designed using Borland C++ Builder / Turbo C in
+DOS/Windows.
 
 Many of these shortcomings in the original have been adressed through extensive
 refactoring during the porting effort to GNU/Linux.  There have also been some
-overall radical design changes to improve the game feeling.
+radical design changes to improve the overall game feeling.
 
-                               -- Joachim Nilsson, Skultuna Sweden July 7th 2009
+                            -- Joachim Nilsson, Skultuna Sweden July 21st 2009
