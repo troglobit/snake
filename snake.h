@@ -26,7 +26,7 @@
 #define CACTUS    '*'
 
 #define MAXROW    22
-#define MAXCOL    77
+#define MAXCOL    78
 
 #define START_LEN (4 + level)
 #define START_COL (MAXCOL / 2 - START_LEN)
