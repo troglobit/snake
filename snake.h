@@ -33,9 +33,9 @@
 #define START_ROW ((MAXROW + 1) / 2)
 
 #define DEFAULT_DELAY 200000
-#define DEFAULT_KEYS  {'o', 'p', 'a', 'z'}
+#define DEFAULT_KEYS  {'o', 'p', 'a', 'z', 'f', 'j', 'q'}
 
-typedef enum { LEFT=0, RIGHT, UP, DOWN, NUM_KEYS } direction_t;
+typedef enum { LEFT=0, RIGHT, UP, DOWN, LEFT_TURN, RIGHT_TURN, QUIT, NUM_KEYS } direction_t;
 
 typedef struct
 {

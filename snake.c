@@ -231,18 +231,86 @@ void setup_level (screen_t *screen, snake_t *snake, int level)
    printf ("[ Micro Snake v%s ]", VERSION);
 }
 
-void move (snake_t *snake)
+void move (snake_t *snake, char keys[], char key)
 {
+   int i;
+   direction_t prev = snake->dir;
+
+   if (key == keys[RIGHT])
+   {
+      snake->dir = RIGHT;
+   }
+   else if (key == keys[LEFT])
+   {
+      snake->dir = LEFT;
+   }
+   else if (key == keys[UP])
+   {
+      snake->dir = UP;
+   }
+   else if (key == keys[DOWN])
+   {
+      snake->dir = DOWN;
+   }
+   else if (key == keys[LEFT_TURN])
+   {
+      switch (prev)
+      {
+         case LEFT:
+            snake->dir = DOWN;
+            break;
+
+         case RIGHT:
+            snake->dir = UP;
+            break;
+
+         case UP:
+            snake->dir = LEFT;
+            break;
+
+         case DOWN:
+            snake->dir = RIGHT;
+            break;
+
+         default:
+            break;
+      }
+   }
+   else if (key == keys[RIGHT_TURN])
+   {
+      switch (prev)
+      {
+         case LEFT:
+            snake->dir = UP;
+            break;
+
+         case RIGHT:
+            snake->dir = DOWN;
+            break;
+
+         case UP:
+            snake->dir = RIGHT;
+            break;
+
+         case DOWN:
+            snake->dir = LEFT;
+            break;
+
+         default:
+            break;
+      }
+   }
+
    switch (snake->dir)
    {
-      case RIGHT:
-         snake->body[snake->len].row = snake->body[snake->len - 1].row;
-         snake->body[snake->len].col = snake->body[snake->len - 1].col + 1;
-         break;
-
       case LEFT:
          snake->body[snake->len].row = snake->body[snake->len - 1].row;
          snake->body[snake->len].col = snake->body[snake->len - 1].col - 1;
+         break;
+
+      case RIGHT:
+         snake->body[snake->len].row = snake->body[snake->len - 1].row;
+         snake->body[snake->len].col = snake->body[snake->len - 1].col + 1;
          break;
 
       case UP:
@@ -259,12 +327,6 @@ void move (snake_t *snake)
          /* NOP */
          break;
    }
-}
-
-
-void update (snake_t *snake)
-{
-   int i;
 
    /* Blank last segment of snake */
    textattr (RESETATTR);
@@ -336,6 +398,13 @@ int collide_self (snake_t *snake)
    return 0;
 }
 
+int collision (snake_t *snake, screen_t *screen)
+{
+   return collide_walls (snake) ||
+      collide_object (snake, screen, CACTUS) ||
+      collide_self (snake);
+}
+
 int eat_gold (snake_t *snake, screen_t *screen)
 {
    snake_segment_t *head = &snake->body[snake->len - 1];
@@ -347,8 +416,11 @@ int eat_gold (snake_t *snake, screen_t *screen)
    screen->gold--;
    screen->score += snake->len * screen->obstacles;
    snake->len++;
-   //move (&snake);
-   //update (&snake);
+
+   if (screen->score > screen->high_score)
+   {
+      screen->high_score = screen->score; /* New high score! */
+   }
 
    return screen->gold;
 }
@@ -373,42 +445,26 @@ int main (void)
    sigsetup (SIGHUP, sig_handler);
    sigsetup (SIGTERM, sig_handler);
 
-   do                            /* restart game loop */
+   do
    {
       setup_level (&screen, &snake, 1);
 
-      /* main loop */
       do
       {
-         /* If key has been hit, then check it is a direction key - if so,
-          * change direction */
          keypress = (char)getchar ();
-         if (keypress == keys[RIGHT])
-            snake.dir = RIGHT;
-         else if (keypress == keys[LEFT])
-            snake.dir = LEFT;
-         else if (keypress == keys[UP])
-            snake.dir = UP;
-         else if (keypress == keys[DOWN])
-            snake.dir = DOWN;
 
          /* Move the snake one position. */
-         move (&snake);
-
-         update (&snake);
+         move (&snake, keys, keypress);
 
          /* keeps cursor flashing in one place instead of following snake */
          gotoxy (1, 1);
 
-         if (collide_walls (&snake) || 
-             collide_object (&snake, &screen, CACTUS) ||
-             collide_self (&snake))
+         if (collision (&snake, &screen))
          {
-            keypress = 'x';     /* game over */
+            keypress = keys[QUIT];
             break;
          }
-
-         if (collide_object (&snake, &screen, GOLD))
+         else if (collide_object (&snake, &screen, GOLD))
          {
             /* If no gold left after consuming this one... */
             if (!eat_gold (&snake, &screen))
@@ -420,13 +476,7 @@ int main (void)
             show_score (&screen);
          }
       }
-      while (keypress != 'x');
-
-      if (screen.score > screen.high_score)
-      {
-         /* New high score! */
-         screen.high_score = screen.score;
-      }
+      while (keypress != keys[QUIT]);
 
       show_score (&screen);
 
