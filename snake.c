@@ -329,6 +329,23 @@ int collide_self (snake_t *snake)
    return 0;
 }
 
+int eat_gold (snake_t *snake, screen_t *screen)
+{
+   snake_segment_t *head = &snake->body[snake->len - 1];
+   
+   /* We're called after collide_object() so we know it's
+    * a piece of gold at this position.  Eat it up! */
+   screen->grid[head->row - 1][head->col - 1] = ' ';
+
+   screen->gold--;
+   screen->score += snake->len * screen->obstacles;
+   snake->len++;
+   //move (&snake);
+   //update (&snake);
+
+   return screen->gold;
+}
+
 int main (void)
 {
    char keypress;
@@ -381,23 +398,19 @@ int main (void)
              collide_self (&snake))
          {
             keypress = 'x';     /* game over */
+            break;
          }
 
          if (collide_object (&snake, &screen, GOLD))
          {
-            /* increase score and length of snake */
-            screen.gold--;
-            screen.score += snake.len * screen.obstacles;
-            show_score (&screen);
-            snake.len++;
-            move (&snake);
-            update (&snake);
-
-            if (!screen.gold)
+            /* If no gold left after consuming this one... */
+            if (!eat_gold (&snake, &screen))
             {
-               /* Go to next level */
+               /* ... then go to next level. */
                setup_level (&screen, &snake, 0);
             }
+
+            show_score (&screen);
          }
       }
       while (keypress != 'x');
