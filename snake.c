@@ -65,7 +65,7 @@ int sigsetup (int signo, void (*callback)(int))
 void sig_handler (int signal __attribute__ ((unused)))
 {
    clrscr ();
-   printf ("Received signal %d\n", signal);
+   DBG("Received signal %d\n", signal);
    exit (WEXITSTATUS(system ("stty sane")));
 }
 
@@ -225,8 +225,8 @@ void setup_level (screen_t *screen, snake_t *snake, int level)
    show_score (screen);
 
    textcolor (LIGHTRED);
-   gotoxy (3, 1);
-   printf ("h:Help");
+   //gotoxy (3, 1);
+   //printf ("h:Help");
    gotoxy (30, 1);
    printf ("[ Micro Snake v%s ]", VERSION);
 }
@@ -347,9 +347,10 @@ void move (snake_t *snake, char keys[], char key)
       puts (" ");
    }
    textattr (RESETATTR);
-
+#ifdef DEBUG
    gotoxy (71, 1);
    printf ("(%02d,%02d)", snake->body[snake->len - 1].col, snake->body[snake->len - 1].row);
+#endif
 }
 
 int collide_walls (snake_t *snake)
