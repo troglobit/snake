@@ -5,7 +5,7 @@
 # Set CC and CFGLAGS in your local environment for a suitable
 # compiler (tcc?) and CFLAGS (-Os -W -Wall -Werror).
 
-VERSION   = 1.0.0-rc1
+VERSION   = 1.0.0
 CC       ?= gcc
 CFLAGS   += -W -Wall -Werror -DVERSION=\"$(VERSION)\"
 
