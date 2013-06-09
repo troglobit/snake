@@ -1,12 +1,12 @@
 /* Micro Snake, based on a simple simple snake game by Simon Huggins
- * 
+ *
  * Copyright (c) 2003, 2004  Simon Huggins <webmaster@simonhuggins.com>
- * Copyright (c) 2009  Joachim Nilsson <joachim.nilsson@member.fsf.org>
- * 
+ * Copyright (c) 2009  Joachim Nilsson <troglobit@gmail.com>
+ *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
@@ -82,7 +82,7 @@ void alarm_handler (int signal __attribute__ ((unused)))
    val.it_value.tv_usec = usec_delay;
 
    setitimer (ITIMER_REAL, &val, NULL);
-} 
+}
 
 void show_score (screen_t *screen)
 {
@@ -370,7 +370,7 @@ int collide_walls (snake_t *snake)
 int collide_object (snake_t *snake, screen_t *screen, char object)
 {
    snake_segment_t *head = &snake->body[snake->len - 1];
-   
+
    if (screen->grid[head->row - 1][head->col - 1] == object)
    {
       DBG("Object '%c' collision.\n", object);
@@ -409,7 +409,7 @@ int collision (snake_t *snake, screen_t *screen)
 int eat_gold (snake_t *snake, screen_t *screen)
 {
    snake_segment_t *head = &snake->body[snake->len - 1];
-   
+
    /* We're called after collide_object() so we know it's
     * a piece of gold at this position.  Eat it up! */
    screen->grid[head->row - 1][head->col - 1] = ' ';

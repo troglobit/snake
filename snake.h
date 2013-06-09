@@ -1,7 +1,7 @@
 /* Micro Snake, based on a simple simple snake game by Simon Huggins
  * 
  * Copyright (c) 2003, 2004  Simon Huggins <webmaster@simonhuggins.com>
- * Copyright (c) 2009  Joachim Nilsson <joachim.nilsson@member.fsf.org>
+ * Copyright (c) 2009  Joachim Nilsson <troglobit@gmail.com>
  * 
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above

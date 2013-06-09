@@ -3,16 +3,15 @@ README                                          -*-text-*-
 Welcome to Micro Snake, based on an original implementation by Simon Huggins.
 Current maintainer is Joachim Nilsson.
 
-Regarding the name, I decided to continue the theme I started with Micro
-Tetris.  This version of the snake (worm) game is very small and only utilizes
-ANSI escape sequences to draw the board. Hence it is very suitable for todays
-small embedded devices.
+The theme started with Micro Tetris continues with this version of the snake
+(worm) game.  It is very small and only utilizes ANSI escape sequences to draw
+the board. Hence it is very suitable for todays small embedded devices.
 
-The game is available both as a Git source control archive and as traditional
+The game is available both as a GIT source control archive and as traditional
 tarball releases from FTP:
 
-	git clone http://git.vmlinux.org/snake.git
-	ftp://ftp.vmlinux.org/pub/People/jocke/micro-snake/
+	git clone git://github.com/troglobit/snake.git
+	ftp://troglobit.com/snake/
 
 See the file AUTHORS for contact information.
 
