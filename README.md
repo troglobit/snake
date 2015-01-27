@@ -71,6 +71,7 @@ Borland C++ Builder / Turbo C.  Most of this has been refactored during
 the porting effort to GNU/Linux.  There has also been some game design
 changes to improve the overall feeling.
 
+[Micro Tetris]:    http://github.com/troglobit/tetris
 [Repository]:      http://github.com/troglobit/snake
 [Issue Tracker]:   http://github.com/troglobit/snake/issues
 [Simon Huggins]:   http://github.com/huggyfee
