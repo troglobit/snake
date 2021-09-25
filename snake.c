@@ -37,6 +37,7 @@
 
 /* Default 0.2 sec between snake movement. */
 unsigned int usec_delay = DEFAULT_DELAY;
+unsigned int VERSION = 1;
 
 int sigsetup (int signo, void (*callback)(int))
 {
@@ -228,7 +229,7 @@ void setup_level (screen_t *screen, snake_t *snake, int level)
    //gotoxy (3, 1);
    //printf ("h:Help");
    gotoxy (30, 1);
-   printf ("[ Micro Snake v%s ]", VERSION);
+   printf ("[ Micro Snake v%d ]", VERSION);
 }
 
 void move (snake_t *snake, char keys[], char key)
