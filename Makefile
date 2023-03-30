@@ -7,7 +7,7 @@
 
 VERSION   = 1.0.1
 CC       ?= gcc
-CFLAGS   += -W -Wall -Werror -DVERSION=\"$(VERSION)\"
+CFLAGS   += -W -Wall -Wextra -DVERSION=\"$(VERSION)\"
 
 all: snake
 
